@@ -23,8 +23,8 @@ admin_api = duo_client.Admin(
 )
 '''
 admin_api = duo_client.Admin(
-    ikey=('DI7CMCVQCUOBPPV6CKA8'),
-    skey=('cIPTcazkbVj2KDW5hnrFTI2T63c0UmvkKHzDEc72'),
+    ikey=('DIOGGYCC75X54B7GAMEP'),
+    skey=('6trJL5xbm1GmP86Uu3S2bkVYyDbJ7keNDKmsl4uo'),
     host=('api-b4801a5f.duosecurity.com'),
 )
 
@@ -43,7 +43,7 @@ def create_empty_policy(name, print_response=False):
     return response.get("policy_key")
 
 
-def create_policy_browsers(name, print_response=False):
+def create_policy_browsers(name, app_integration_key, group_id_list, print_response=False):
     """
     Create a policy that blocks internet explorer browsers. Requires
     Access or Beyond editions.
@@ -90,6 +90,22 @@ def nb_create_policy_ecmsiteamssms(name, print_response=False):
             },
         },
     }
+
+def nb_update_policies_ecmsiteamssms(app_integration_key, group_id_list, print_response=False):
+    """
+    Applies the ECMSI TEAMS SMS policy to all applications
+    """
+
+    json_request = {
+        "apply_to_groups_in_apps": {
+           "apply_group_policies_list": {
+               "app_integration_key": app_integration_key,
+               "group_id_list": group_id_list,
+           }
+        },
+     },
+
+
     response = admin_api.create_policy_v2(json_request)
     if print_response:
         pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
@@ -273,6 +289,35 @@ def main():
             user_id=user['user_id'],
             group_id=group_id_value
         )
+
+
+# Create Applications ==============================================
+    rdp_integration = admin_api.create_integration(
+    name='Microsoft RDP',
+    integration_type='rdp',
+    username_normalization_policy='Simple',
+    )
+    rdp_server_integration = admin_api.create_integration(
+    name='Microsoft RDP - Servers',
+    integration_type='rdp',
+    username_normalization_policy='Simple',
+    )
+    passportal_websdk_integration = admin_api.create_integration(
+    name='Passportal - Web SDK',
+    integration_type='websdk',
+    username_normalization_policy='Simple',
+    )
+    passportal_authapi_integration = admin_api.create_integration(
+    name='Passportal - Auth API',
+    integration_type='authapi',
+    username_normalization_policy='Simple',
+)
+print('Created Application integrations')
+
+
+
+# Need to add parameters and before we run this command, need to feed it group ID List and app integration key
+update_policies_ecmsiteamssms = nb_update_policies_ecmsiteamssms()
 
 
 if __name__ == "__main__":
