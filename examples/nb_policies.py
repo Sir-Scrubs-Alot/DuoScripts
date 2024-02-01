@@ -23,8 +23,8 @@ admin_api = duo_client.Admin(
 )
 '''
 admin_api = duo_client.Admin(
-    ikey=('DIOGGYCC75X54B7GAMEP'),
-    skey=('6trJL5xbm1GmP86Uu3S2bkVYyDbJ7keNDKmsl4uo'),
+    ikey=('DI49RFWHV1YAQM6V9AWH'),
+    skey=('FBmUWStvquGpX9AS74rLg9qo5z5Q2odw7YRgyF8X'),
     host=('api-b4801a5f.duosecurity.com'),
 )
 
@@ -91,7 +91,13 @@ def nb_create_policy_ecmsiteamssms(name, print_response=False):
         },
     }
 
-def nb_update_policies_ecmsiteamssms(app_integration_key, group_id_list, print_response=False):
+    response = admin_api.create_policy_v2(json_request)
+    if print_response:
+        pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
+        print(pretty)
+    return response.get("policy_key")
+
+def nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list, print_response=False):
     """
     Applies the ECMSI TEAMS SMS policy to all applications
     """
@@ -103,10 +109,10 @@ def nb_update_policies_ecmsiteamssms(app_integration_key, group_id_list, print_r
                "group_id_list": group_id_list,
            }
         },
-     },
+     }
 
 
-    response = admin_api.create_policy_v2(json_request)
+    response = admin_api.update_policy_v2(policy_key, json_request)
     if print_response:
         pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
         print(pretty)
@@ -227,7 +233,8 @@ def main():
 
     # Loop over each policy.
     iterate_all_policies()
-'''
+    '''
+
     # Create ECMSI TEAMS SMS
     policy_key_ecmsiTeamsSMS = nb_create_policy_ecmsiteamssms("ECMSI TEAMS SMS")
     print('Created ECMSI Teams SMS Policy')
@@ -291,7 +298,7 @@ def main():
         )
 
 
-# Create Applications ==============================================
+    # Create Applications ==============================================
     rdp_integration = admin_api.create_integration(
     name='Microsoft RDP',
     integration_type='rdp',
@@ -311,13 +318,17 @@ def main():
     name='Passportal - Auth API',
     integration_type='authapi',
     username_normalization_policy='Simple',
-)
-print('Created Application integrations')
+    )
+    print('Created Application integrations')
 
-
-
-# Need to add parameters and before we run this command, need to feed it group ID List and app integration key
-update_policies_ecmsiteamssms = nb_update_policies_ecmsiteamssms()
+    # Need to add parameters and before we run this command, need to feed it group ID List and app integration key
+    # update_policies_ecmsiteamssms = nb_update_policy_ecmsiteamssms(app_integration_key, group_id_list)
+    group_id_list = [group_id_value]
+    policy_key = policy_key_ecmsiTeamsSMS
+    response = admin_api.get_integrations()
+    app_integration_keys = [entry["integration_key"] for entry in response]
+    for app_integration_key in app_integration_keys:
+        update_policies_ecmsiteamssms = nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list)
 
 
 if __name__ == "__main__":
