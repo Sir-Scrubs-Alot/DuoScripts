@@ -28,43 +28,6 @@ admin_api = duo_client.Admin(
     host=('api-b4801a5f.duosecurity.com'),
 )
 
-def create_empty_policy(name, print_response=False):
-    """
-    Create an empty policy with a specified name.
-    """
-
-    json_request = {
-        "policy_name": name,
-    }
-    response = admin_api.create_policy_v2(json_request)
-    if print_response:
-        pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
-        print(pretty)
-    return response.get("policy_key")
-
-
-def create_policy_browsers(name, app_integration_key, group_id_list, print_response=False):
-    """
-    Create a policy that blocks internet explorer browsers. Requires
-    Access or Beyond editions.
-    """
-
-    json_request = {
-        "policy_name": name,
-        "sections": {
-            "browsers": {
-                "blocked_browsers_list": [
-                    "ie",
-                ],
-            },
-        },
-    }
-    response = admin_api.create_policy_v2(json_request)
-    if print_response:
-        pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
-        print(pretty)
-    return response.get("policy_key")
-
 def nb_create_policy_ecmsiteamssms(name, print_response=False):
     """
     Creates the ECMSI TEAMS SMS policy
@@ -130,51 +93,6 @@ def nb_create_group_admingroup(name, print_response=False):
     return response.get("policy_key")
 
 
-def copy_policy(name1, name2, copy_from, print_response=False):
-    """
-    Copy the policy `copy_from` to two new policies.
-    """
-    response = admin_api.copy_policy_v2(copy_from, [name1, name2])
-    if print_response:
-        pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
-        print(pretty)
-    policies = response.get("policies")
-    return (policies[0].get("policy_key"), policies[1].get("policy_key"))
-
-def bulk_delete_section(policy_keys, print_response=False):
-    """
-    Delete the section "browsers" from the provided policies.
-    """
-    response = admin_api.update_policies_v2("", ["browsers"], policy_keys)
-    if print_response:
-        pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
-        print(pretty)
-
-def update_policy_with_device_health_app(policy_key, print_response=False):
-    """
-    Update a given policy to include Duo Device Health App policy
-    settings. Requires Access or Beyond editions.
-    """
-
-    json_request = {
-        "sections": {
-            "device_health_app": {
-                "enforce_encryption": ["windows"],
-                "enforce_firewall": ["windows"],
-                "prompt_to_install": ["windows"],
-                "requires_DHA": ["windows"],
-                "windows_endpoint_security_list": ["cisco-amp"],
-                "windows_remediation_note": "Please install Windows agent",
-            },
-        },
-    }
-    response = admin_api.update_policy_v2(policy_key, json_request)
-    if print_response:
-        pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
-        print(pretty)
-    return response.get("policy_key")
-
-
 def get_policy(policy_key):
     """
     Fetch a given policy.
@@ -205,13 +123,6 @@ def iterate_all_policies():
         pretty = json.dumps(policy, indent=4, sort_keys=True, default=str)
         print(pretty)
 
-def check_variable_type(variable, variable_name):
-    if isinstance(variable, list):
-        print(f"{variable_name} is a list.")
-    elif isinstance(variable, dict):
-        print(f"{variable_name} is a dictionary.")
-    else:
-        print(f"{variable_name} is neither a list nor a dictionary.")
 
 
 def main():
