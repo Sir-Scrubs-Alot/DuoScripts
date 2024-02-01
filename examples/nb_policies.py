@@ -97,20 +97,21 @@ def nb_create_policy_ecmsiteamssms(name, print_response=False):
         print(pretty)
     return response.get("policy_key")
 
-def nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list, print_response=False):
+def nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list, print_response=True):
     """
     Applies the ECMSI TEAMS SMS policy to all applications
     """
 
     json_request = {
         "apply_to_groups_in_apps": {
-           "apply_group_policies_list": {
-               "app_integration_key": app_integration_key,
-               "group_id_list": group_id_list,
-           }
-        },
-     }
-
+            "apply_group_policies_list": [
+                {
+                    "app_integration_key": app_integration_key,
+                    "group_id_list": group_id_list,
+                }
+            ]
+        }
+    }
 
     response = admin_api.update_policy_v2(policy_key, json_request)
     if print_response:
@@ -203,6 +204,14 @@ def iterate_all_policies():
         pretty = json.dumps(policy, indent=4, sort_keys=True, default=str)
         print(pretty)
 
+def check_variable_type(variable, variable_name):
+    if isinstance(variable, list):
+        print(f"{variable_name} is a list.")
+    elif isinstance(variable, dict):
+        print(f"{variable_name} is a dictionary.")
+    else:
+        print(f"{variable_name} is neither a list nor a dictionary.")
+
 
 def main():
 
@@ -237,6 +246,7 @@ def main():
 
     # Create ECMSI TEAMS SMS
     policy_key_ecmsiTeamsSMS = nb_create_policy_ecmsiteamssms("ECMSI TEAMS SMS")
+    print(policy_key_ecmsiTeamsSMS)
     print('Created ECMSI Teams SMS Policy')
 
     # Create Admin Group
@@ -321,8 +331,6 @@ def main():
     )
     print('Created Application integrations')
 
-    # Need to add parameters and before we run this command, need to feed it group ID List and app integration key
-    # update_policies_ecmsiteamssms = nb_update_policy_ecmsiteamssms(app_integration_key, group_id_list)
     group_id_list = [group_id_value]
     policy_key = policy_key_ecmsiTeamsSMS
     response = admin_api.get_integrations()
@@ -331,5 +339,7 @@ def main():
         update_policies_ecmsiteamssms = nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list)
 
 
+
 if __name__ == "__main__":
     main()
+
