@@ -97,7 +97,7 @@ def nb_create_policy_ecmsiteamssms(name, print_response=False):
         print(pretty)
     return response.get("policy_key")
 
-def nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list, print_response=True):
+def nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list, print_response=False):
     """
     Applies the ECMSI TEAMS SMS policy to all applications
     """
@@ -128,6 +128,7 @@ def nb_create_group_admingroup(name, print_response=False):
         pretty = json.dumps(response, indent=4, sort_keys=True, default=str)
         print(pretty)
     return response.get("policy_key")
+
 
 def copy_policy(name1, name2, copy_from, print_response=False):
     """
@@ -215,41 +216,15 @@ def check_variable_type(variable, variable_name):
 
 def main():
 
-    '''
-    # Create two empty policies
-    policy_key_a = create_empty_policy("Test New Policy - a")
-    policy_key_b = create_empty_policy("Test New Policy - b")
+    # Update the Timezone
+    admin_api.update_settings(timezone="US/Eastern")
 
-    # Update policy with Duo Device Health App settings.
-    update_policy_with_device_health_app(policy_key_b)
-
-    # Create an empty policy and delete it.
-    policy_key_c = create_empty_policy("Test New Policy - c")
-    admin_api.delete_policy_v2(policy_key_c)
-
-    # Create a policy with browser restriction settings.
-    policy_key_d = create_policy_browsers("Test New Policy - d")
-
-    # Copy a policy to 2 new policies.
-    policy_key_e, policy_key_f = copy_policy("Test New Policy - e", "Test New Policy - f", policy_key_d)
-
-    # Delete the browser restriction settings from 2 policies.
-    bulk_delete_section([policy_key_e, policy_key_f])
-
-    # Fetch the global and other custom policy.
-    get_policy("global")
-    get_policy(policy_key_b)
-
-    # Loop over each policy.
-    iterate_all_policies()
-    '''
-
-    # Create ECMSI TEAMS SMS
+    # Create the ECMSI TEAMS SMS policy
     policy_key_ecmsiTeamsSMS = nb_create_policy_ecmsiteamssms("ECMSI TEAMS SMS")
     print(policy_key_ecmsiTeamsSMS)
     print('Created ECMSI Teams SMS Policy')
 
-    # Create Admin Group
+    # Create the Admin Group
     create_admingroup = nb_create_group_admingroup("Admin Group")
     print('Created the Admin Group')
     
@@ -308,7 +283,7 @@ def main():
         )
 
 
-    # Create Applications ==============================================
+    # Create Protected Applications ==============================================
     rdp_integration = admin_api.create_integration(
     name='Microsoft RDP',
     integration_type='rdp',
@@ -329,15 +304,20 @@ def main():
     integration_type='authapi',
     username_normalization_policy='Simple',
     )
-    print('Created Application integrations')
+    print('Created the Protected Applications')
 
+
+    # Apply the ECMSI TEAMS SMS group policy to the Protected Applications
     group_id_list = [group_id_value]
     policy_key = policy_key_ecmsiTeamsSMS
     response = admin_api.get_integrations()
     app_integration_keys = [entry["integration_key"] for entry in response]
     for app_integration_key in app_integration_keys:
         update_policies_ecmsiteamssms = nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list)
+    print('Applied the ECMSI TEAMS SMS group policy to the Portected Applications')
 
+    Print('=== Automation Complete! ===')
+  
 
 
 if __name__ == "__main__":
