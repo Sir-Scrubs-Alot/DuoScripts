@@ -28,6 +28,8 @@ admin_api = duo_client.Admin(
     host=('api-b4801a5f.duosecurity.com'),
 )
 
+passportal_account = "pp-castawaycraigs"
+
 def nb_create_policy_ecmsiteamssms(name, print_response=False):
     """
     Creates the ECMSI TEAMS SMS policy
@@ -82,7 +84,57 @@ def nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_lis
         print(pretty)
     return response.get("policy_key")
 
-def nb_create_group_admingroup(name, print_response=False):
+def nb_update_policy_globalpolicy(global_policy_id):
+    """
+    Update the contents of a policy specified by global_policy_id.
+
+    Args:
+        api_instance: The instance of the API to make the update call.
+        global_policy_id (str): The global policy ID to apply the changes to.
+        allowed_auth_list (list): List of allowed authentication methods.
+        blocked_auth_list (list): List of blocked authentication methods.
+        sections_to_delete (list, optional): List of section names to delete.
+                                           Defaults to None.
+
+    Returns:
+        dict: Response from the update API call.
+    """
+     # Your specified sections
+    sections = {
+        "authentication_methods": {
+            "allowed_auth_list": [
+                "hardware-token",
+                "duo-passcode",
+                "webauthn-platform",
+                "webauthn-roaming",
+                "duo-push",
+            ],
+            "blocked_auth_list": [
+                "phonecall",
+                "sms",
+            ],
+        },
+    }
+
+    # Sections to delete
+    sections_to_delete = []  # Replace with actual section names
+
+    # Edit list with the specified variable "global_policy_id"
+    edit_list = [global_policy_id]  # Replace with actual policy ID
+
+    # Call the update_policies_v2 function
+    response = admin_api.update_policies_v2(
+        sections=sections,
+        sections_to_delete=sections_to_delete,
+        edit_list=edit_list,
+        edit_all_policies=False  # Set to True if you want to apply changes to all policies
+    )
+
+    # Print or handle the response as needed
+    print("Updated Global Policy to restrict SMS and Phone Callback")
+
+
+def nb_create_group_grpsms(name, print_response=False):
     """
     Creates the Admin Group
     """
@@ -127,6 +179,20 @@ def iterate_all_policies():
 
 def main():
 
+    getglobalpolicyid = admin_api.get_policies_v2()
+    # Iterate through each policy in the list
+    for policy in getglobalpolicyid:
+        # Check if the policy_name is 'Global Policy'
+        if policy['policy_name'] == 'Global Policy':
+            # Get the policy_id for the matching policy
+            global_policy_id = policy['policy_key']
+            break  # Exit the loop once the desired policy is found
+
+    # Print or use the policy_id as needed
+    print("Policy ID for 'Global Policy':", global_policy_id)
+
+    nb_update_policy_globalpolicy(global_policy_id)
+
     # Update the Timezone
     admin_api.update_settings(timezone="US/Eastern")
 
@@ -135,13 +201,13 @@ def main():
     print(policy_key_ecmsiTeamsSMS)
     print('Created ECMSI Teams SMS Policy')
 
-    # Create the Admin Group
-    create_admingroup = nb_create_group_admingroup("Admin Group")
+    # Create GRP-SMS
+    create_admingroup = nb_create_group_grpsms("GRP-SMS")
     print('Created the Admin Group')
     
-    # Get Admin Group Group ID
+    # Get Group ID for GRP-SMS
     get_ecmsi_admin_groupid = admin_api.get_groups()
-    desired_group_name = 'Admin Group'
+    desired_group_name = 'GRP-SMS'
     group_id_value = None  # Initialize the variable outside the loop
     # Check if the list is not empty before searching
     if get_ecmsi_admin_groupid:
@@ -158,7 +224,7 @@ def main():
 
 
     # Create User Accounts, add phone object for ECMSI Teams MFA Number
-    USERNAMES = ["helpdesk1", "helpdesk2", "administrator", "probe"]
+    USERNAMES = ["helpdesk1", "helpdesk2", "administrator", "probe", passportal_account]
     ECMSI_TEAMS_NUMBER = '3305363581'
     PHONE_TYPE = 'mobile'
 
@@ -225,10 +291,9 @@ def main():
     app_integration_keys = [entry["integration_key"] for entry in response]
     for app_integration_key in app_integration_keys:
         update_policies_ecmsiteamssms = nb_update_policy_ecmsiteamssms(policy_key, app_integration_key, group_id_list)
-    print('Applied the ECMSI TEAMS SMS group policy to the Portected Applications')
+    print('Applied the ECMSI TEAMS SMS group policy to the Protected Applications')
 
-    Print('=== Automation Complete! ===')
-  
+    print('=== Automation Complete! ===')
 
 
 if __name__ == "__main__":
