@@ -23,9 +23,9 @@ admin_api = duo_client.Admin(
 )
 '''
 admin_api = duo_client.Admin(
-    ikey=('DI49RFWHV1YAQM6V9AWH'),
-    skey=('FBmUWStvquGpX9AS74rLg9qo5z5Q2odw7YRgyF8X'),
-    host=('api-b4801a5f.duosecurity.com'),
+    ikey=(''),
+    skey=(''),
+    host=(''),
 )
 
 passportal_account = "pp-castawaycraigs"
